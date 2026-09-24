@@ -148,20 +148,59 @@
   tabBtns.generate.addEventListener("click", () => switchTab("generate"));
   tabBtns.feedback.addEventListener("click", () => switchTab("feedback"));
 
-  // ---- feedback ----
+  // ---- feedback backend (Google Form — free & private: only you see responses) ----
+  // Setup (one time, ~2 min): create a Google Form with "Your name" + "Your message",
+  // link it to Sheets, then get a pre-filled link and paste the IDs below.
+  // See README "Feedback setup" for steps.
+  const FB_FORM_ID = "";    // e.g. "1FAIpQLSdXyZ..."  (from the form URL)
+  const FB_ENTRY_NAME = ""; // e.g. "entry.123456789" (your "name" question)
+  const FB_ENTRY_MSG = "";  // e.g. "entry.987654321" (your "message" question)
   const DEV_EMAIL = "adilabdullahkhan35@gmail.com";
-  $("fbSend").addEventListener("click", () => {
+  const FB_CONFIGURED = FB_FORM_ID && FB_ENTRY_NAME && FB_ENTRY_MSG;
+
+  function showFbStatus(msg, ok) {
+    const el = $("fbStatus");
+    el.textContent = msg;
+    el.className = "fbstatus " + (ok ? "ok" : "err");
+    el.style.display = "block";
+    clearTimeout(showFbStatus._t);
+    showFbStatus._t = setTimeout(() => { el.style.display = "none"; }, 5000);
+  }
+
+  $("fbSend").addEventListener("click", async () => {
     const name = $("fbName").value.trim();
     const msg = $("fbMsg").value.trim();
     if (!msg) { $("fbMsg").focus(); return; }
-    const subject = encodeURIComponent("QRForge Feedback" + (name ? " from " + name : ""));
-    const body = encodeURIComponent(
-      (name ? "Name: " + name + "\n\n" : "") + msg + "\n\n— sent from QRForge v1.1.0"
-    );
-    chrome.tabs.create({ url: `mailto:${DEV_EMAIL}?subject=${subject}&body=${body}` });
-    $("fbMsg").value = "";
-    $("fbSend").textContent = "✓ Opening your email app…";
-    setTimeout(() => ($("fbSend").textContent = "Send Feedback ✉️"), 2000);
+
+    // Fallback while the form backend isn't configured yet: open email app.
+    if (!FB_CONFIGURED) {
+      const subject = encodeURIComponent("QRForge Feedback" + (name ? " from " + name : ""));
+      const body = encodeURIComponent((name ? "Name: " + name + "\n\n" : "") + msg + "\n\n— sent from QRForge");
+      chrome.tabs.create({ url: `mailto:${DEV_EMAIL}?subject=${subject}&body=${body}` });
+      return;
+    }
+
+    $("fbSend").disabled = true;
+    $("fbSend").textContent = "Sending…";
+    try {
+      const params = new URLSearchParams();
+      params.append(FB_ENTRY_NAME, name || "Anonymous");
+      params.append(FB_ENTRY_MSG, msg);
+      await fetch(`https://docs.google.com/forms/d/e/${FB_FORM_ID}/formResponse`, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString()
+      });
+      $("fbMsg").value = "";
+      $("fbName").value = "";
+      showFbStatus("✓ Thank you! Your feedback was received.", true);
+    } catch (e) {
+      showFbStatus("Couldn't send. Check your connection and try again.", false);
+    } finally {
+      $("fbSend").disabled = false;
+      $("fbSend").textContent = "Send Feedback ✉️";
+    }
   });
   $("fbIssue").addEventListener("click", () => {
     chrome.tabs.create({ url: "https://github.com/adilabdullah15/qrforge-extension/issues" });
