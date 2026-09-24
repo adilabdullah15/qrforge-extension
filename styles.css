@@ -98,6 +98,13 @@ button {
 }
 .actions button:hover { background: #475569; }
 
+.counter {
+  text-align: right;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 .history { margin-top: 12px; font-size: 13px; }
 .history summary { cursor: pointer; color: var(--muted); }
 .history ul { list-style: none; margin-top: 6px; max-height: 120px; overflow-y: auto; }
