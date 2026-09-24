@@ -136,6 +136,37 @@
     $("charCount").textContent = input.value.length;
   });
 
+  // ---- tabs ----
+  const tabBtns = { generate: $("tabBtnGenerate"), feedback: $("tabBtnFeedback") };
+  const tabPanes = { generate: $("tabGenerate"), feedback: $("tabFeedback") };
+  function switchTab(which) {
+    Object.keys(tabBtns).forEach((k) => {
+      tabBtns[k].classList.toggle("active", k === which);
+      tabPanes[k].classList.toggle("active", k === which);
+    });
+  }
+  tabBtns.generate.addEventListener("click", () => switchTab("generate"));
+  tabBtns.feedback.addEventListener("click", () => switchTab("feedback"));
+
+  // ---- feedback ----
+  const DEV_EMAIL = "adilabdullahkhan35@gmail.com";
+  $("fbSend").addEventListener("click", () => {
+    const name = $("fbName").value.trim();
+    const msg = $("fbMsg").value.trim();
+    if (!msg) { $("fbMsg").focus(); return; }
+    const subject = encodeURIComponent("QRForge Feedback" + (name ? " from " + name : ""));
+    const body = encodeURIComponent(
+      (name ? "Name: " + name + "\n\n" : "") + msg + "\n\n— sent from QRForge v1.1.0"
+    );
+    chrome.tabs.create({ url: `mailto:${DEV_EMAIL}?subject=${subject}&body=${body}` });
+    $("fbMsg").value = "";
+    $("fbSend").textContent = "✓ Opening your email app…";
+    setTimeout(() => ($("fbSend").textContent = "Send Feedback ✉️"), 2000);
+  });
+  $("fbIssue").addEventListener("click", () => {
+    chrome.tabs.create({ url: "https://github.com/adilabdullah15/qrforge-extension/issues" });
+  });
+
   $("dlPng").addEventListener("click", () => {
     if (!lastCanvas) return;
     download(lastCanvas.toDataURL("image/png"), "qrforge.png");
