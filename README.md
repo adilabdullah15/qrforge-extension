@@ -55,6 +55,23 @@ The code is structured for a future Pro tier:
 Billing would plug in via Stripe/Paddle or an extension SDK (ExtensionPay, crxpay) —
 Google retired native Web Store payments, so third-party billing is required.
 
+## 💬 Feedback setup (private, free — one time, ~2 min)
+
+The Feedback tab sends messages straight to **your** private Google Sheet — no email app, no backend server. Only you can see the responses.
+
+1. Go to [forms.google.com](https://forms.google.com) → **Blank form**, name it `QRForge Feedback`
+2. Add two questions:
+   - `Your name` — Short answer, **not** required
+   - `Your message` — Paragraph, **required**
+3. **Responses** tab → **Link to Sheets** → Create — this is your private inbox (only you have access)
+4. Click **⋮** (top right) → **Get pre-filled link** → type `Test` in both fields → **Get link** → copy it
+5. From that link, note:
+   - the **form ID**: the part between `/d/e/` and `/viewform`
+   - the **entry IDs**: `entry.123456789` (name) and `entry.987654321` (message)
+6. Paste them into `popup.js` (`FB_FORM_ID`, `FB_ENTRY_NAME`, `FB_ENTRY_MSG`), reload the extension
+
+Until configured, the Send button falls back to opening the user's email app.
+
 ## 📄 License
 
 MIT — see [LICENSE](LICENSE). QR engine: [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator) (MIT).
