@@ -13,6 +13,7 @@ Generate beautiful, customizable QR codes instantly — right from your browser.
 - **Export** — download as **PNG** or **SVG**, or copy straight to clipboard
 - **Right-click anywhere** — generate a QR for the current page, any link, or selected text via context menu
 - **History** — your recent QR codes are saved locally and one click restores them
+- **Feedback tab** — send feedback directly to the developer, view developer info, or report issues on GitHub
 - **Private** — everything runs locally in the extension; nothing is uploaded anywhere
 
 ## 🚀 Install (developer mode — free)
