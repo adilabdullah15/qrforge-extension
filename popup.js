@@ -48,6 +48,31 @@
     throw lastErr;
   }
 
+  // Draw QR modules onto a canvas at the exact requested size, with chosen colors.
+  // (We draw ourselves instead of using the lib's createImgTag, which only
+  // takes positional args and has no color support.)
+  function drawQr(qr, size, fg, bg) {
+    const n = qr.getModuleCount();
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    const cell = size / n;
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, size, size);
+    ctx.fillStyle = fg;
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (qr.isDark(r, c)) {
+          ctx.fillRect(Math.floor(c * cell), Math.floor(r * cell), Math.ceil(cell), Math.ceil(cell));
+        }
+      }
+    }
+    return canvas;
+  }
+
+  let lastCanvas = null;
+
   function generate() {
     const { text, size, fg, bg } = currentOptions();
     if (!text) {
@@ -67,12 +92,9 @@
       previewWrap.classList.remove("hidden");
       return;
     }
-    const cell = Math.max(1, Math.floor(size / qr.getModuleCount()));
-    const imgTag = qr.createImgTag({ cellSize: cell, margin: 4, fgcolor: fg, bgcolor: bg });
-    preview.innerHTML = imgTag;
-    // Normalize to the requested size for crisp downloads
-    const img = preview.querySelector("img");
-    if (img) { img.width = size; img.height = size; }
+    lastCanvas = drawQr(qr, size, fg, bg);
+    preview.innerHTML = "";
+    preview.appendChild(lastCanvas);
     previewWrap.classList.remove("hidden");
     saveHistory(text);
   }
@@ -115,18 +137,8 @@
   });
 
   $("dlPng").addEventListener("click", () => {
-    const { size } = currentOptions();
-    const canvas = document.createElement("canvas");
-    canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext("2d");
-    const img = preview.querySelector("img");
-    if (!img) return;
-    const tmp = new Image();
-    tmp.onload = () => {
-      ctx.drawImage(tmp, 0, 0, size, size);
-      download(canvas.toDataURL("image/png"), "qrforge.png");
-    };
-    tmp.src = img.src;
+    if (!lastCanvas) return;
+    download(lastCanvas.toDataURL("image/png"), "qrforge.png");
   });
 
   $("dlSvg").addEventListener("click", () => {
@@ -136,24 +148,15 @@
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   });
 
-  $("copy").addEventListener("click", async () => {
-    const { size } = currentOptions();
-    const img = preview.querySelector("img");
-    if (!img) return;
-    const tmp = new Image();
-    tmp.onload = async () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = size; canvas.height = size;
-      canvas.getContext("2d").drawImage(tmp, 0, 0, size, size);
-      canvas.toBlob(async (blob) => {
-        try {
-          await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-          $("copy").textContent = "✓ Copied";
-          setTimeout(() => ($("copy").textContent = "⧉ Copy"), 1500);
-        } catch (e) { /* clipboard denied */ }
-      });
-    };
-    tmp.src = img.src;
+  $("copy").addEventListener("click", () => {
+    if (!lastCanvas) return;
+    lastCanvas.toBlob(async (blob) => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+        $("copy").textContent = "✓ Copied";
+        setTimeout(() => ($("copy").textContent = "⧉ Copy"), 1500);
+      } catch (e) { /* clipboard denied */ }
+    });
   });
 
   // ---- history (chrome.storage.local) ----
