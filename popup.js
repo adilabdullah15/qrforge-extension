@@ -32,6 +32,22 @@
     };
   }
 
+  // Max ~2,900 chars at lowest error correction ('L').
+  // We try 'M' first (better scan reliability), then fall back to 'L' for long texts.
+  function makeQr(text) {
+    let lastErr = null;
+    for (const ec of ["M", "L"]) {
+      try {
+        // qrcode-generator (kazuhikoarase) — type 0 = auto-detect version
+        const qr = qrcode(0, ec);
+        qr.addData(text);
+        qr.make();
+        return qr;
+      } catch (e) { lastErr = e; }
+    }
+    throw lastErr;
+  }
+
   function generate() {
     const { text, size, fg, bg } = currentOptions();
     if (!text) {
@@ -40,23 +56,25 @@
       return;
     }
     preview.innerHTML = "";
+    let qr;
     try {
-      // qrcode-generator (kazuhikoarase) — type 0 = auto-detect, 'M' = medium ECC
-      const qr = qrcode(0, "M");
-      qr.addData(text);
-      qr.make();
-      const cell = Math.max(1, Math.floor(size / qr.getModuleCount()));
-      const imgTag = qr.createImgTag({ cellSize: cell, margin: 4, fgcolor: fg, bgcolor: bg });
-      preview.innerHTML = imgTag;
-      // Normalize to the requested size for crisp downloads
-      const img = preview.querySelector("img");
-      if (img) { img.width = size; img.height = size; }
-      previewWrap.classList.remove("hidden");
-      saveHistory(text);
+      qr = makeQr(text);
     } catch (e) {
-      preview.innerHTML = "<p style='color:#f87171'>Text too long for a QR code.</p>";
+      preview.innerHTML =
+        "<p style='color:#f87171'>Text too long — " + text.length +
+        " characters. QR codes hold up to ~2,900 characters" +
+        " (fewer for non-English text). Try shortening it or splitting it into parts.</p>";
       previewWrap.classList.remove("hidden");
+      return;
     }
+    const cell = Math.max(1, Math.floor(size / qr.getModuleCount()));
+    const imgTag = qr.createImgTag({ cellSize: cell, margin: 4, fgcolor: fg, bgcolor: bg });
+    preview.innerHTML = imgTag;
+    // Normalize to the requested size for crisp downloads
+    const img = preview.querySelector("img");
+    if (img) { img.width = size; img.height = size; }
+    previewWrap.classList.remove("hidden");
+    saveHistory(text);
   }
 
   function renderSvg() {
@@ -89,6 +107,11 @@
   $("generate").addEventListener("click", generate);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); generate(); }
+  });
+
+  // Live character counter
+  input.addEventListener("input", () => {
+    $("charCount").textContent = input.value.length;
   });
 
   $("dlPng").addEventListener("click", () => {
