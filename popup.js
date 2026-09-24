@@ -152,9 +152,9 @@
   // Setup (one time, ~2 min): create a Google Form with "Your name" + "Your message",
   // link it to Sheets, then get a pre-filled link and paste the IDs below.
   // See README "Feedback setup" for steps.
-  const FB_FORM_ID = "";    // e.g. "1FAIpQLSdXyZ..."  (from the form URL)
-  const FB_ENTRY_NAME = ""; // e.g. "entry.123456789" (your "name" question)
-  const FB_ENTRY_MSG = "";  // e.g. "entry.987654321" (your "message" question)
+  const FB_FORM_ID = "1FAIpQLSfsbKuhDHG36ZyEU_oE3Rz5k8QOx1m3p6nfMNFZbl-HOgDaHg"; // "QRForge Feedback" form (private: only owner sees responses)
+  const FB_ENTRY_NAME = "entry.783896294"; // "Your name" question (short answer, optional)
+  const FB_ENTRY_MSG = "entry.1723422302"; // "Your message" question (paragraph, required)
   const DEV_EMAIL = "adilabdullahkhan35@gmail.com";
   const FB_CONFIGURED = FB_FORM_ID && FB_ENTRY_NAME && FB_ENTRY_MSG;
 
