@@ -13,6 +13,13 @@
       <p class="tagline">QR codes in one click</p>
     </header>
 
+    <nav class="tabs">
+      <button id="tabBtnGenerate" class="tab active">⚡ Generate</button>
+      <button id="tabBtnFeedback" class="tab">✉️ Feedback</button>
+    </nav>
+
+    <section id="tabGenerate" class="tabpane active">
+
     <label class="field">
       <span>Text or URL</span>
       <textarea id="input" rows="3" placeholder="Paste a link or type anything…"></textarea>
@@ -65,6 +72,37 @@
       <summary>Recent (<span id="histCount">0</span>)</summary>
       <ul id="histList"></ul>
     </details>
+    </section>
+
+    <section id="tabFeedback" class="tabpane">
+      <div class="devcard">
+        <div class="avatar">AK</div>
+        <div class="devinfo">
+          <h2>Adil Abdullah Khan</h2>
+          <p class="role">Extension Developer</p>
+          <p class="loc">📍 Bhakkar, Punjab, Pakistan</p>
+        </div>
+      </div>
+
+      <div class="devlinks">
+        <a href="https://github.com/adilabdullah15" target="_blank" class="btnlink">💻 GitHub</a>
+        <a href="mailto:adilabdullahkhan35@gmail.com?subject=QRForge%20—%20Hello" target="_blank" class="btnlink">✉️ Email me</a>
+      </div>
+
+      <h3 class="sectitle">Send feedback</h3>
+      <p class="hint">Found a bug or have a feature idea? Write it below — your email app will open with everything addressed to the developer.</p>
+
+      <label class="field">
+        <span>Your name (optional)</span>
+        <input type="text" id="fbName" placeholder="Your name" />
+      </label>
+      <label class="field">
+        <span>Message</span>
+        <textarea id="fbMsg" rows="4" placeholder="I loved… / Please add… / Bug: …"></textarea>
+      </label>
+      <button id="fbSend" class="primary">Send Feedback ✉️</button>
+      <button id="fbIssue" class="secondary">🐛 Report issue on GitHub</button>
+    </section>
 
     <footer>
       <span>Made by Adil Abdullah Khan · MIT</span>
