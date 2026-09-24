@@ -87,7 +87,7 @@ button {
 }
 .preview.hidden { display: none; }
 #preview { display: inline-block; background: #fff; padding: 8px; border-radius: 8px; }
-#preview img, #preview canvas { display: block; }
+#preview img, #preview canvas { display: block; max-width: 100%; height: auto; }
 
 .actions { display: flex; gap: 8px; margin-top: 10px; }
 .actions button {
