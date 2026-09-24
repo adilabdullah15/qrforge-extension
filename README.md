@@ -70,7 +70,7 @@ The Feedback tab sends messages straight to **your** private Google Sheet — no
    - the **entry IDs**: `entry.123456789` (name) and `entry.987654321` (message)
 6. Paste them into `popup.js` (`FB_FORM_ID`, `FB_ENTRY_NAME`, `FB_ENTRY_MSG`), reload the extension
 
-Until configured, the Send button falls back to opening the user's email app.
+✅ The feedback backend is already configured in this repo — the Send button posts straight to the private Sheet. Until configured, the Send button falls back to opening the user's email app.
 
 ## 📄 License
 
