@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QRForge</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>QRForge</h1>
+      <p class="tagline">QR codes in one click</p>
+    </header>
+
+    <label class="field">
+      <span>Text or URL</span>
+      <textarea id="input" rows="3" placeholder="Paste a link or type anything…"></textarea>
+    </label>
+
+    <div class="row">
+      <label class="field half">
+        <span>Size</span>
+        <select id="size">
+          <option value="256">256 px</option>
+          <option value="512" selected>512 px</option>
+          <option value="1024">1024 px</option>
+        </select>
+      </label>
+      <label class="field half">
+        <span>Style</span>
+        <select id="theme">
+          <option value="classic" selected>Classic</option>
+          <option value="inverted">Inverted</option>
+          <option value="blue">Ocean blue</option>
+          <option value="green">Forest</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="row">
+      <label class="field half color">
+        <span>Foreground</span>
+        <input type="color" id="fg" value="#111111" />
+      </label>
+      <label class="field half color">
+        <span>Background</span>
+        <input type="color" id="bg" value="#ffffff" />
+      </label>
+    </div>
+
+    <button id="generate" class="primary">Generate QR</button>
+
+    <div id="previewWrap" class="preview hidden">
+      <div id="preview"></div>
+      <div class="actions">
+        <button id="dlPng">⬇ PNG</button>
+        <button id="dlSvg">⬇ SVG</button>
+        <button id="copy">⧉ Copy</button>
+      </div>
+    </div>
+
+    <details class="history">
+      <summary>Recent (<span id="histCount">0</span>)</summary>
+      <ul id="histList"></ul>
+    </details>
+
+    <footer>
+      <span>Made by Adil Abdullah Khan · MIT</span>
+    </footer>
+  </div>
+
+  <script src="vendor/qrcode.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
