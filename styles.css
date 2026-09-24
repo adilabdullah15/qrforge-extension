@@ -195,3 +195,14 @@ footer {
   border: 1px solid #334155;
 }
 .secondary:hover { border-color: var(--accent); }
+
+.fbstatus {
+  display: none;
+  font-size: 13px;
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  margin-top: 8px;
+}
+.fbstatus.ok { background: #14532d; color: #bbf7d0; }
+.fbstatus.err { background: #7f1d1d; color: #fecaca; }
