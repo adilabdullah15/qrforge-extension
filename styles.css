@@ -120,6 +120,35 @@ button {
 }
 .history li:hover { border: 1px solid var(--accent); }
 
+/* ---- QR design option row (3 thumbnails side by side) ---- */
+.design-row { display: flex; gap: 8px; }
+.design-opt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  background: var(--card);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  color: var(--text);
+  padding: 8px 4px 7px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.design-opt:hover { border-color: var(--accent); }
+.design-opt img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: #fff;
+  display: block;
+}
+.design-opt.sel {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
 footer {
   margin-top: 12px;
   text-align: center;

@@ -30,6 +30,7 @@
       <label class="field half">
         <span>Size</span>
         <select id="size">
+          <option value="128">128 px</option>
           <option value="256">256 px</option>
           <option value="512" selected>512 px</option>
           <option value="1024">1024 px</option>
@@ -40,10 +41,13 @@
         <select id="theme">
           <option value="classic" selected>Classic</option>
           <option value="inverted">Inverted</option>
-          <option value="blue">Ocean blue</option>
-          <option value="green">Forest</option>
         </select>
       </label>
+    </div>
+
+    <div class="field">
+      <span>QR design</span>
+      <div class="design-row" id="designRow" role="radiogroup"></div>
     </div>
 
     <div class="row">
@@ -106,11 +110,12 @@
     </section>
 
     <footer>
-      <span>Made by Adil Abdullah Khan · MIT</span>
+      <span>Made by Adil Abdullah Khan ©</span>
     </footer>
   </div>
 
   <script src="vendor/qrcode.js"></script>
+  <script src="renderer.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 // QRForge popup logic — 100% client-side, no server needed.
+// QR drawing lives in renderer.js (QRForge.renderCanvas / QRForge.renderSvg).
 (function () {
   "use strict";
 
@@ -13,9 +14,7 @@
 
   const THEMES = {
     classic:  { fg: "#111111", bg: "#ffffff" },
-    inverted: { fg: "#ffffff", bg: "#111111" },
-    blue:     { fg: "#0c4a6e", bg: "#e0f2fe" },
-    green:    { fg: "#14532d", bg: "#dcfce7" }
+    inverted: { fg: "#ffffff", bg: "#111111" }
   };
 
   themeSel.addEventListener("change", () => {
@@ -23,98 +22,100 @@
     if (t) { fgPick.value = t.fg; bgPick.value = t.bg; }
   });
 
-  function currentOptions() {
-    return {
-      text: input.value.trim(),
-      size: parseInt(sizeSel.value, 10),
-      fg: fgPick.value,
-      bg: bgPick.value
-    };
+  // ---- QR design options (3 thumbnails in a row) ----
+  // The center logo stays as-is on every design; only the QR style changes.
+  let designKey = "dots";
+  const designRow = $("designRow");
+
+  function setDesign(key) {
+    designKey = key;
+    designRow.querySelectorAll(".design-opt").forEach((el) => {
+      const sel = el.dataset.key === key;
+      el.classList.toggle("sel", sel);
+      el.setAttribute("aria-checked", sel ? "true" : "false");
+    });
   }
 
-  // Max ~2,900 chars at lowest error correction ('L').
-  // We try 'M' first (better scan reliability), then fall back to 'L' for long texts.
-  function makeQr(text) {
-    let lastErr = null;
-    for (const ec of ["M", "L"]) {
-      try {
-        // qrcode-generator (kazuhikoarase) — type 0 = auto-detect version
-        const qr = qrcode(0, ec);
-        qr.addData(text);
-        qr.make();
-        return qr;
-      } catch (e) { lastErr = e; }
-    }
-    throw lastErr;
+  QRForge.DESIGN_ORDER.forEach((key) => {
+    const st = QRForge.QR_DESIGNS[key];
+    const opt = document.createElement("button");
+    opt.type = "button";
+    opt.className = "design-opt";
+    opt.dataset.key = key;
+    opt.setAttribute("role", "radio");
+    const img = document.createElement("img");
+    img.src = "icons/designs/" + key + ".png";
+    img.alt = "";
+    const label = document.createElement("span");
+    label.textContent = st.name;
+    opt.appendChild(img);
+    opt.appendChild(label);
+    opt.addEventListener("click", () => setDesign(key));
+    designRow.appendChild(opt);
+  });
+  setDesign(designKey);
+
+  // ---- QRForge logo (icons/icon128.png), cached after first load ----
+  let logoImgCache = null;
+  let logoDataUrlCache = null;
+
+  function loadLogoImg() {
+    if (logoImgCache) return Promise.resolve(logoImgCache);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => { logoImgCache = img; resolve(img); };
+      img.onerror = () => resolve(null); // logo missing -> QR without logo
+      img.src = QRForge.LOGO_PATH;
+    });
   }
 
-  // Draw QR modules onto a canvas at the exact requested size, with chosen colors.
-  // (We draw ourselves instead of using the lib's createImgTag, which only
-  // takes positional args and has no color support.)
-  function drawQr(qr, size, fg, bg) {
-    const n = qr.getModuleCount();
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext("2d");
-    const cell = size / n;
-    ctx.fillStyle = bg;
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = fg;
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        if (qr.isDark(r, c)) {
-          ctx.fillRect(Math.floor(c * cell), Math.floor(r * cell), Math.ceil(cell), Math.ceil(cell));
-        }
-      }
-    }
-    return canvas;
+  function loadLogoDataUrl() {
+    if (logoDataUrlCache) return Promise.resolve(logoDataUrlCache);
+    return fetch(QRForge.LOGO_PATH)
+      .then((r) => r.blob())
+      .then((b) => new Promise((resolve) => {
+        const fr = new FileReader();
+        fr.onload = () => { logoDataUrlCache = fr.result; resolve(fr.result); };
+        fr.onerror = () => resolve(null);
+        fr.readAsDataURL(b);
+      }))
+      .catch(() => null);
   }
 
   let lastCanvas = null;
+  let lastRender = null; // options used for the last render (for SVG export)
 
-  function generate() {
-    const { text, size, fg, bg } = currentOptions();
+  async function generate() {
+    const text = input.value.trim();
     if (!text) {
       input.focus();
       input.placeholder = "Type something first…";
       return;
     }
-    preview.innerHTML = "";
-    let qr;
+    const size = parseInt(sizeSel.value, 10);
+    const design = designKey;
+    const fg = fgPick.value, bg = bgPick.value;
+
+    preview.innerHTML = "<p style='color:#94a3b8'>Building…</p>";
+    previewWrap.classList.remove("hidden");
+
+    const logoImg = await loadLogoImg();
+
     try {
-      qr = makeQr(text);
+      lastRender = { text, size, fg, bg, design, logoImg };
+      lastCanvas = QRForge.renderCanvas(lastRender);
     } catch (e) {
       preview.innerHTML =
         "<p style='color:#f87171'>Text too long — " + text.length +
-        " characters. QR codes hold up to ~2,900 characters" +
-        " (fewer for non-English text). Try shortening it or splitting it into parts.</p>";
-      previewWrap.classList.remove("hidden");
+        " characters. The center logo needs high error correction, which caps text at " +
+        "~1,200 characters. Try shortening the text or splitting it into parts.</p>";
+      lastCanvas = null;
+      lastRender = null;
       return;
     }
-    lastCanvas = drawQr(qr, size, fg, bg);
     preview.innerHTML = "";
     preview.appendChild(lastCanvas);
-    previewWrap.classList.remove("hidden");
     saveHistory(text);
-  }
-
-  function renderSvg() {
-    const { text, size, fg, bg } = currentOptions();
-    const qr = qrcode(0, "M");
-    qr.addData(text);
-    qr.make();
-    const n = qr.getModuleCount();
-    const cell = size / n;
-    let rects = "";
-    for (let r = 0; r < n; r++) {
-      for (let c = 0; c < n; c++) {
-        if (qr.isDark(r, c)) {
-          rects += `<rect x="${(c * cell).toFixed(2)}" y="${(r * cell).toFixed(2)}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}"/>`;
-        }
-      }
-    }
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" fill="${bg}"/><g fill="${fg}">${rects}</g></svg>`;
   }
 
   function download(url, filename) {
@@ -211,8 +212,11 @@
     download(lastCanvas.toDataURL("image/png"), "qrforge.png");
   });
 
-  $("dlSvg").addEventListener("click", () => {
-    const blob = new Blob([renderSvg()], { type: "image/svg+xml" });
+  $("dlSvg").addEventListener("click", async () => {
+    if (!lastRender) return;
+    const logoDataUrl = await loadLogoDataUrl();
+    const svg = QRForge.renderSvg({ ...lastRender, logoDataUrl });
+    const blob = new Blob([svg], { type: "image/svg+xml" });
     const url = URL.createObjectURL(blob);
     download(url, "qrforge.svg");
     setTimeout(() => URL.revokeObjectURL(url), 5000);
